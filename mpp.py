@@ -3,10 +3,6 @@ import argparse
 import sys
 
 args = None
-nr = None
-nc = None
-classes = None
-df = {} 
 
 # def check_py_version():
 #     if sys.version_info <= (3, 5):
@@ -37,16 +33,10 @@ def mpp(df):
     """
     pass
 
-
-def main():
-
-    global nr, nc, classes, df
-
-    # now parse command line
-    parse()
+def load_data(trainf='datasets/synth.tr', testf='datasets/synth.te'):
 
     # process training data
-    data = np.loadtxt('datasets/synth.tr')
+    data = np.loadtxt(trainf)
     train_data = data[:,:-1]                    # return all feature columns except last
     train_label = data[:, -1].astype(int)       # put all labels in separate array
     
@@ -57,24 +47,29 @@ def main():
     nr, nc = np.shape(train_data)
 
     # processing testing data
-    data = np.loadtxt('datasets/synth.te')
+    data = np.loadtxt(testf)
     test_data = data[:,:-1]
     test_label = data[:, -1].astype(int)
 
     # sanity check (# of columns must be equal)
     assert np.size(test_data, 1) == np.size(train_data, 1)
 
-    print("Loaded: {} records of training data, {} feature columns, {} classes".format(nr, nc, classes))
-    print("Loaded: {} records of test data, sanity check okay".format(np.size(test_data)))
-    print("Chosen case: ", args.case)
 
-    df['train_data'] = train_data
-    df['train_label'] = train_label
-    df['test_data'] = test_data
-    df['test_label'] = test_label
-    df['case'] = args.case
+    return (train_data, train_label, test_data, test_label, nr, nc, classes)
 
-    mpp(df)
+
+def main():
+
+    # now parse command line
+    parse()
+
+
+    # print("Loaded: {} records of training data, {} feature columns, {} classes".format(nr, nc, classes))
+    # print("Loaded: {} records of test data, sanity check okay".format(np.size(test_data)))
+    # print("Chosen case: ", args.case)
+
+
+    # mpp(df)
 
 if __name__ == "__main__":
     main()
