@@ -37,7 +37,7 @@ class MPP:
         # processing testing data
         self.test_data = np.genfromtxt(testf)
         self.test_nr, _ = np.shape(self.test_data)
-        
+
         # sanity check (# of columns must be equal)
         assert np.size(self.test_data, 1) == np.size(self.train_data, 1)
 
@@ -46,9 +46,9 @@ class MPP:
         self.pw = np.full(self.classn, 1/self.classn)
 
         self.covs, self.means, self.covavg, self.varavg = \
-            self.mpp_init(self.train_data, self.test_data, self.classes)
+            self.train(self.train_data, self.classes)
 
-    def mpp_init(self, Tr, Te, classes):
+    def train(self, Tr, classes):
         """ initialize: return (covs, means, covavg, varavg) """
         covs, means = {}, {}
         covavg, varavg, covsum = None, None, None
@@ -73,27 +73,33 @@ class MPP:
     def set_case(self, case):
         self.case = case
 
-    def train1(self, sample):
-        """ return a label """
-        print("calling train")
-
-    def train(self, case = 1):
-        """ train all data """
-
+    def evaluate(self, case = 1):
+        """ eval all data """
+        disc = np.zeros(len(self.classes))
+        for i in range(self.test_nr):
+            if case == 1:
+                for c in self.classes:
+                    c = int(c)  # class is float, convert to int for indexing
+                    ti = self.test_data[i,:-1]  # get ith row
+                    edist = np.linalg.norm(self.means[c] - ti)
+                    disc[c] = -edist*edist/(2*self.varavg) + np.log(self.pw[c])  
+                    print("edist: {}, disc{}".format(edist, disc[c]))
+            elif case == 2:
+                pass
+            elif case == 3:
+                pass
+            else:
+                raise Exception("Can't handle case value", case)
 
 def main():
 
     # now parse command line
-    args = parse_cmdline()
-    mpp = MPP(args.train, args.test)
-    mpp.train(args.case)
+    # args = parse_cmdline()
+    # mpp = MPP(args.train, args.test)
+    # mpp.train(args.case)
 
-    # print("Loaded: {} records of training data, {} feature columns, {} classes".format(nr, nc, classes))
-    # print("Loaded: {} records of test data, sanity check okay".format(np.size(test_data)))
-    # print("Chosen case: ", args.case)
-
-
-    # mpp(df)
+    m = MPP("datasets/synth.tr", "datasets/synth.te")
+    m.eval(case = 1)
 
 if __name__ == "__main__":
     main()
