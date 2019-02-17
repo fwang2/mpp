@@ -39,7 +39,6 @@ class mpp:
 
         for c in self.classes_:
             arr = Tr[y == c]
-            print(arr.shape)
             self.covs_[c] = np.cov(arr)
             self.means_[c] = np.mean(arr, axis=0)  # mean along rows
             if self.covsum_ is None:
@@ -60,8 +59,7 @@ class mpp:
         nr, _ = T.shape
         for i in range(nr):
             for c in self.classes_:
-                ti = T[i, :-1]  # get ith row
-                edist = np.linalg.norm(self.means_[c] - ti)
+                edist = np.linalg.norm(self.means_[c] - T[i])
                 disc[c] = -(edist * edist) / (2 * self.varavg_) + np.log(
                     self.pw_[c])
             y.append(disc.argmax())
@@ -84,7 +82,6 @@ def load_data(f="datasets/synth.tr"):
 
 def main():
 
-    from sklearn.naive_bayes import GaussianNB
     from sklearn.metrics import accuracy_score
 
     Xtrain, ytrain = load_data("datasets/synth.tr")
@@ -92,7 +89,7 @@ def main():
     model = mpp()
     model.fit(Xtrain, ytrain)
     y_model = model.predict(Xtest)
-    accuracy_score(ytest, y_model)
+    print("model accuracy: {}".format(accuracy_score(ytest, y_model)))
 
 if __name__ == "__main__":
     main()
