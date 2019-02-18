@@ -65,7 +65,37 @@ class mpp:
             y.append(disc.argmax())
 
         return y
-        
+
+    def score(self, X, y, sample_weight=None):
+        """ Return the mean accuracy on the give test data and labels
+
+        This function follows sci-kit idiom:
+
+        In multi-label classification, this is the subset accuracy
+        which is a harsh metric since you require for each sample that
+        each label set be correctly predicted.
+
+        Parameters
+        ----------
+        X : array-like, shape = (n_samples, n_features)
+            Test samples.
+
+        y : array-like, shape = (n_samples) or (n_samples, n_outputs)
+            True labels for X.
+
+        sample_weight : array-like, shape = [n_samples], optional
+            Sample weights.
+
+        Returns
+        -------
+        score : float
+            Mean accuracy of self.predict(X) wrt. y.
+
+        """
+
+        from sklearn.metrics import accuracy_score
+        return accuracy_score(y, self.predict(X), sample_weight = sample_weight)
+
 def load_data(f="datasets/synth.tr"):
     """ Assume data format:
     feature1 feature 2 ... label 
