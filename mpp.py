@@ -18,6 +18,10 @@ def parse_cmdline():
         "case", type=int, choices=range(1, 4), help="choose from 1, 2, 3")
     return parser.parse_args()
 
+def accuracy_score(y, y_model):
+    """ return accuracy score """
+    assert len(y) == len(y_model)
+    return np.count_nonzero(y==y_model)/len(y)
 
 class mpp:
     def __init__(self, case=1):
@@ -28,6 +32,8 @@ class mpp:
         # self.covs, self.means, self.covavg, self.varavg = \
         #     self.train(self.train_data, self.classes)
         self.case_ = case
+        self.pw_ = None
+
 
     def fit(self, Tr, y):
         self.covs_, self.means_ = {}, {}
@@ -35,7 +41,6 @@ class mpp:
 
         self.classes_ = np.unique(y)
         self.classn_ = len(self.classes_)
-        self.pw_ = np.full(self.classn_, 1 / self.classn_)
 
         for c in self.classes_:
             arr = Tr[y == c]
@@ -57,6 +62,10 @@ class mpp:
         y = []
         disc = np.zeros(self.classn_)
         nr, _ = T.shape
+
+        if self.pw_ is None:
+            self.pw_ = np.full(self.classn_, 1 / self.classn_)
+
         for i in range(nr):
             for c in self.classes_:
                 edist = np.linalg.norm(self.means_[c] - T[i])
@@ -68,35 +77,11 @@ class mpp:
 
     def score(self, X, y, sample_weight=None):
         """ Return the mean accuracy on the give test data and labels
-
-        This function follows sci-kit idiom:
-
-        In multi-label classification, this is the subset accuracy
-        which is a harsh metric since you require for each sample that
-        each label set be correctly predicted.
-
-        Parameters
-        ----------
-        X : array-like, shape = (n_samples, n_features)
-            Test samples.
-
-        y : array-like, shape = (n_samples) or (n_samples, n_outputs)
-            True labels for X.
-
-        sample_weight : array-like, shape = [n_samples], optional
-            Sample weights.
-
-        Returns
-        -------
-        score : float
-            Mean accuracy of self.predict(X) wrt. y.
-
         """
 
-        from sklearn.metrics import accuracy_score
-        return accuracy_score(y, self.predict(X), sample_weight = sample_weight)
+        return accuracy_score(y, self.predict(X))
 
-def load_data(f="datasets/synth.tr"):
+def load_data(f):
     """ Assume data format:
     feature1 feature 2 ... label 
     """
@@ -111,15 +96,19 @@ def load_data(f="datasets/synth.tr"):
 
 
 def main():
-
-    from sklearn.metrics import accuracy_score
+    x1 = np.arange(0.05, 0.95, 0.05)
+    x2 = 1 - x1
+    pw_arr = np.hstack((x1[:, np.newaxis], x2[:, np.newaxis]))
 
     Xtrain, ytrain = load_data("datasets/synth.tr")
     Xtest, ytest = load_data("datasets/synth.te")
     model = mpp()
     model.fit(Xtrain, ytrain)
-    y_model = model.predict(Xtest)
-    print("model accuracy: {}".format(accuracy_score(ytest, y_model)))
+
+    for pw in pw_arr:
+        model.pw_ = pw 
+        y_model = model.predict(Xtest)
+        print("model accuracy: {}".format(accuracy_score(ytest, y_model)))
 
 if __name__ == "__main__":
     main()
